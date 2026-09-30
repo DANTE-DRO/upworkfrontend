@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Dashboard — Upwork Kenya</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14a800">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Upwork Kenya">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/install.css">
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-logo">Upwork<span>Kenya</span></div>
+  <div class="splash-bar"><i></i></div>
+  <div class="splash-tag">Work · Earn · Grow</div>
+</div>
+
+<!-- topbar -->
+<header class="topbar">
+  <button class="icon-btn hamburger" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+  <div class="brand">Upwork<span>Kenya</span> 🇰🇪</div>
+  <div class="spacer"></div>
+  <button class="wallet-pill" id="walletPill" title="Earnings wallet — click to open"><span class="dot"></span><span id="walletPillAmt">KES 0</span></button>
+  <button class="icon-btn" id="notifBtn" title="Notifications">🔔<span class="badge-dot" id="notifCount" style="display:none">0</span></button>
+  <div style="position:relative">
+    <div class="dropdown" id="notifDrop"><div class="dd-item" style="color:var(--muted)">Loading…</div></div>
+  </div>
+  <button class="icon-btn" onclick="UK.toggleTheme()" title="Toggle dark mode">🌙</button>
+  <button class="avatar-btn" id="avatarBtn" title="Profile"></button>
+</header>
+
+<div class="layout">
+  <!-- sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <button class="nav-item active" data-view="dashboard"><span class="ico">🏠</span> Dashboard</button>
+    <button class="nav-item" data-view="packages"><span class="ico">💎</span> Packages</button>
+    <button class="nav-item" data-view="tasks"><span class="ico">⚡</span> Today's Tasks</button>
+    <button class="nav-item" data-view="test"><span class="ico">⌨️</span> Typing Test</button>
+    <button class="nav-item" data-view="wallet"><span class="ico">💰</span> Wallet</button>
+    <button class="nav-item" data-view="invest"><span class="ico">📈</span> Investor Funds</button>
+    <button class="nav-item" data-view="market"><span class="ico">🛒</span> Marketplace</button>
+    <button class="nav-item" data-view="orders"><span class="ico">📦</span> Orders</button>
+    <button class="nav-item" data-view="profile"><span class="ico">👤</span> My Profile</button>
+    <button class="nav-item" data-view="verify"><span class="ico">✔️</span> Get Verified</button>
+    <button class="nav-item" data-view="settings"><span class="ico">⚙️</span> Settings</button>
+    <div style="border-top:1px solid var(--border);margin:14px 4px"></div>
+    <button class="nav-item" id="logoutBtn"><span class="ico">🚪</span> Log out</button>
+  </aside>
+
+  <!-- main -->
+  <main class="main" id="main"></main>
+</div>
+
+<!-- task submit modal: work is done OFF the site, converted to the required
+     format (poster → PDF, data entry → Excel, essay → Word) and uploaded here -->
+<div class="modal-back" id="taskModal">
+  <div class="modal">
+    <h3 id="tmTitle"></h3>
+    <p style="color:var(--muted);font-size:14px" id="tmDesc"></p>
+    <p style="margin:12px 0"><span class="pill pill-green" id="tmPay"></span> <span class="pill pill-blue" id="tmCat"></span> <span class="pill pill-amber" id="tmFmt"></span></p>
+    <div id="tmGuide"></div>
+    <label>Upload your completed file</label>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <input type="file" id="tmFile" accept=".pdf,.doc,.docx,.xls,.xlsx" style="display:none">
+      <button class="btn btn-ghost btn-sm" id="tmPick" type="button">📎 Choose file…</button>
+      <span id="tmFileNote" style="color:var(--muted);font-size:13px">Only PDF, Word or Excel</span>
+    </div>
+    <label style="margin-top:12px">Delivery note (optional)</label>
+    <textarea id="tmSubmission" rows="3" placeholder="Anything the reviewer should know about your delivery…"></textarea>
+    <div id="tmMsg" style="margin-top:10px"></div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn btn-primary" id="tmSubmit">Submit for verification →</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('taskModal').classList.remove('open')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/common.js"></script>
+<script>
+/* Cache self-heal: force the newest service worker once per version so a stale
+   cached shell can never break requests again (fixes "Request failed" on login
+   in Chrome without needing incognito). Reload is guarded — it can happen at
+   most once per tab, so there is no reload loop. */
+(function(){try{
+  var K='uk_sw_ver',V='2.3.0';
+  if(!('serviceWorker' in navigator))return;
+  navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.update().catch(function(){});});}).catch(function(){});
+  if(localStorage.getItem(K)!==V){
+    localStorage.setItem(K,V);
+    if(navigator.serviceWorker.controller){
+      try{navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'});}catch(e){}
+      if(sessionStorage.getItem('uk_sw_reloaded')!=='1'){sessionStorage.setItem('uk_sw_reloaded','1');setTimeout(function(){location.reload();},400);}
+    }
+  }
+}catch(e){}})();
+</script>
+<script src="js/app.js"></script>
+<script src="js/install.js"></script>
+</body>
+</html>

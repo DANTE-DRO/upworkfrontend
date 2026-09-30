@@ -1,0 +1,17 @@
+[build]
+  publish = "."
+
+# Force the primary custom domain (kills duplicate-content from the *.netlify.app URL)
+[[redirects]]
+  from = "https://liger-be452a.netlify.app/*"
+  to = "https://upworkkenya.co.ke/:splat"
+  status = 301
+  force = true
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"

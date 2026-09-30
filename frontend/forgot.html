@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Reset password — Upwork Kenya</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14a800">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Upwork Kenya">
+<meta name="robots" content="noindex">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/install.css">
+</head>
+<body>
+<div id="splash">
+  <div class="splash-logo">Upwork<span>Kenya</span></div>
+  <div class="splash-bar"><i></i></div>
+</div>
+
+<div class="auth-card" style="min-height:100vh">
+  <div class="auth-box">
+    <h2>Reset your password</h2>
+    <p class="sub">Enter the email you registered with. We'll create a secure reset link (valid 15 minutes).</p>
+    <form id="fForm">
+      <label>Email address</label>
+      <input id="email" type="email" required placeholder="you@example.com">
+      <div style="margin-top:22px"><button class="btn btn-primary" type="submit" id="fBtn">Send reset link →</button></div>
+      <div class="form-msg" id="msg"></div>
+      <div id="devLink" style="margin-top:12px;font-size:13px;display:none">
+        <span style="color:var(--muted)">Local dev mode (no email server configured):</span><br>
+        <a id="devA" href="#"><b>Open your reset link</b></a>
+      </div>
+    </form>
+    <div class="auth-links">
+      <a href="login.html">← Back to login</a>
+      <a href="register.html"><b>Create account</b></a>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/common.js"></script>
+<script>
+/* Cache self-heal: force the newest service worker once per version so a stale
+   cached shell can never break requests again (fixes "Request failed" on login
+   in Chrome without needing incognito). Reload is guarded — it can happen at
+   most once per tab, so there is no reload loop. */
+(function(){try{
+  var K='uk_sw_ver',V='2.2.0';
+  if(!('serviceWorker' in navigator))return;
+  navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.update().catch(function(){});});}).catch(function(){});
+  if(localStorage.getItem(K)!==V){
+    localStorage.setItem(K,V);
+    if(navigator.serviceWorker.controller){
+      try{navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'});}catch(e){}
+      if(sessionStorage.getItem('uk_sw_reloaded')!=='1'){sessionStorage.setItem('uk_sw_reloaded','1');setTimeout(function(){location.reload();},400);}
+    }
+  }
+}catch(e){}})();
+</script>
+<script>
+UK.splash(700);
+document.getElementById('fForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('msg'), btn = document.getElementById('fBtn');
+  msg.className = 'form-msg'; btn.disabled = true; btn.textContent = 'Working…';
+  try {
+    const r = await UK.api('/api/forgot-password', { method: 'POST', body: JSON.stringify({ email: document.getElementById('email').value })});
+    msg.className = 'form-msg ok'; msg.textContent = r.message;
+    if (r.devResetToken) {
+      const d = document.getElementById('devLink');
+      d.style.display = 'block';
+      document.getElementById('devA').href = 'reset.html?token=' + r.devResetToken;
+    }
+    btn.textContent = 'Send reset link →'; btn.disabled = false;
+  } catch (err) {
+    msg.className = 'form-msg err'; msg.textContent = err.message;
+    btn.disabled = false; btn.textContent = 'Send reset link →';
+  }
+});
+</script>
+<script src="js/install.js"></script>
+</body>
+</html>

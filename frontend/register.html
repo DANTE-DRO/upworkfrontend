@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Create account — Upwork Kenya</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14a800">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Upwork Kenya">
+<meta name="description" content="Join Upwork Kenya free — pass the typing test, earn a KES 150 starter gig, unlock packages via M-Pesa and get paid daily.">
+<link rel="canonical" href="https://upworkkenya.co.ke/register.html">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Upwork Kenya","url":"https://upworkkenya.co.ke/","logo":"https://upworkkenya.co.ke/icons/icon-512.png"}</script>
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/install.css">
+</head>
+<body>
+<div id="splash">
+  <div class="splash-logo">Upwork<span>Kenya</span></div>
+  <div class="splash-bar"><i></i></div>
+</div>
+
+<div class="auth-wrap">
+  <div class="auth-hero">
+    <div class="brand" style="color:#fff;font-size:24px">Upwork<span>Kenya</span> 🇰🇪</div>
+    <h1>Join thousands of Kenyan freelancers earning daily.</h1>
+    <p>Create your free account, pass the typing test and start completing paid tasks in writing, design, data and more.</p>
+    <div class="hero-badges">
+      <span class="hero-badge">✍️ Writing</span><span class="hero-badge">🎨 Design</span>
+      <span class="hero-badge">📊 Data</span><span class="hero-badge">💸 M-Pesa payouts</span>
+    </div>
+  </div>
+  <div class="auth-card">
+    <div class="auth-box">
+      <h2>Create your account</h2>
+      <p class="sub">Free forever. Upgrade tiers by earning, not paying.</p>
+      <form id="regForm">
+        <label>Full name</label>
+        <input id="name" required placeholder="Jane Wanjiku" autocomplete="name">
+        <label>Email address</label>
+        <input id="email" type="email" required placeholder="you@example.com" autocomplete="email">
+        <label>Password</label>
+        <input id="password" type="password" required minlength="6" placeholder="At least 6 characters" autocomplete="new-password">
+        <div style="margin-top:22px"><button class="btn btn-primary" type="submit" id="regBtn">Create account →</button></div>
+        <div class="form-msg" id="msg"></div>
+      </form>
+      <div class="auth-links">
+        <span style="color:var(--muted)">Already have an account?</span>
+        <a href="login.html"><b>Log in</b></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/common.js"></script>
+<script>
+/* Cache self-heal: force the newest service worker once per version so a stale
+   cached shell can never break requests again (fixes "Request failed" on login
+   in Chrome without needing incognito). Reload is guarded — it can happen at
+   most once per tab, so there is no reload loop. */
+(function(){try{
+  var K='uk_sw_ver',V='2.2.0';
+  if(!('serviceWorker' in navigator))return;
+  navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.update().catch(function(){});});}).catch(function(){});
+  if(localStorage.getItem(K)!==V){
+    localStorage.setItem(K,V);
+    if(navigator.serviceWorker.controller){
+      try{navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'});}catch(e){}
+      if(sessionStorage.getItem('uk_sw_reloaded')!=='1'){sessionStorage.setItem('uk_sw_reloaded','1');setTimeout(function(){location.reload();},400);}
+    }
+  }
+}catch(e){}})();
+</script>
+<script>
+UK.splash(700);
+document.getElementById('regForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('msg'), btn = document.getElementById('regBtn');
+  msg.className = 'form-msg'; btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    const r = await UK.api('/api/register', { method: 'POST', body: JSON.stringify({
+      name: document.getElementById('name').value,
+      email: document.getElementById('email').value,
+      password: document.getElementById('password').value
+    })});
+    UK.token = r.token; UK.user = r.user;
+    msg.className = 'form-msg ok'; msg.textContent = 'Karibu! Account created — taking you to your dashboard…';
+    setTimeout(() => location.href = 'app.html', 900);
+  } catch (err) {
+    msg.className = 'form-msg err'; msg.textContent = err.message;
+    btn.disabled = false; btn.textContent = 'Create account →';
+  }
+});
+</script>
+<script src="js/install.js"></script>
+</body>
+</html>
