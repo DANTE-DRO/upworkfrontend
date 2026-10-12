@@ -3,7 +3,7 @@
    Enables: real "Install app" prompt, offline shell, push-style notifications.
    Network-only for /api/ calls so live data is never served stale. */
 
-const CACHE_NAME = 'upwork-kenya-v2.3.0'; // v2.3.0: file-upload task verification, Complete Transaction, partial withdrawals; bump forces old cached JS out on every installed device
+const CACHE_NAME = 'upwork-kenya-v2.3.1'; // v2.3.1: config.js now points at the Render backend (Vercel migration) — bump forces the old cached config.js (empty API base) out on every installed device
 const SHELL = [
   'index.html',
   'app.html',

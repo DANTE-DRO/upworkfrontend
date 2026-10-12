@@ -9,9 +9,16 @@ const UK = {
   set user(v) { v ? localStorage.setItem('uk_user', JSON.stringify(v)) : localStorage.removeItem('uk_user'); },
 
   /* Backend base URL — set in js/config.js (loaded before this script).
-     Empty string means "same origin" (frontend served by the backend itself).
-     No backend URL is hardcoded anywhere in this file. */
-  API_BASE: (typeof window !== 'undefined' && window.UK_API_BASE) || '',
+     '' (empty string) means "same origin" (frontend served by the backend
+     itself). If config.js failed to load entirely, fall back to the deployed
+     cPanel backend sub-domain so the app never silently sends API calls to the
+     frontend's own domain (which is what causes "Failed to fetch" after a migration).
+     Trailing slashes are stripped so URLs never end up as "/​/api/...". */
+  API_BASE: (typeof window !== 'undefined'
+    ? (typeof window.UK_API_BASE === 'string'
+        ? window.UK_API_BASE.trim().replace(/\/+$/, '')
+        : 'https://api.upwork.co.ke')
+    : ''),
 
   async api(path, opts = {}) {
     const headers = { 'Content-Type': 'application/json' };
