@@ -64,7 +64,7 @@
    in Chrome without needing incognito). Reload is guarded — it can happen at
    most once per tab, so there is no reload loop. */
 (function(){try{
-  var K='uk_sw_ver',V='2.2.0';
+  var K='uk_sw_ver',V='2.4.0';
   if(!('serviceWorker' in navigator))return;
   navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.update().catch(function(){});});}).catch(function(){});
   if(localStorage.getItem(K)!==V){
@@ -78,6 +78,12 @@
 </script>
 <script>
 UK.splash(700);
+/* Referral capture: ?ref=CODE (from an invite link) is remembered so it is
+   sent with the registration even if the user browses around first. */
+try {
+  var _ref = new URLSearchParams(location.search).get('ref');
+  if (_ref) localStorage.setItem('uk_ref', _ref.trim().toUpperCase());
+} catch (e) {}
 document.getElementById('regForm').addEventListener('submit', async e => {
   e.preventDefault();
   const msg = document.getElementById('msg'), btn = document.getElementById('regBtn');
@@ -86,8 +92,10 @@ document.getElementById('regForm').addEventListener('submit', async e => {
     const r = await UK.api('/api/register', { method: 'POST', body: JSON.stringify({
       name: document.getElementById('name').value,
       email: document.getElementById('email').value,
-      password: document.getElementById('password').value
+      password: document.getElementById('password').value,
+      ref: (function(){ try { return localStorage.getItem('uk_ref') || ''; } catch (e) { return ''; } })()
     })});
+    try { localStorage.removeItem('uk_ref'); } catch (e) {}
     UK.token = r.token; UK.user = r.user;
     msg.className = 'form-msg ok'; msg.textContent = 'Karibu! Account created — taking you to your dashboard…';
     setTimeout(() => location.href = 'app.html', 900);

@@ -9,7 +9,7 @@
    old build again. /api/ calls remain strictly network-only (live data).
    PWA install, offline shell, notifications and push are fully preserved. */
 
-const CACHE_NAME = 'upwork-kenya-v3.1.0'; // bump on every deploy — wipes old caches on activate
+const CACHE_NAME = 'upwork-kenya-v3.2.0'; // bump on every deploy — wipes old caches on activate
 const SHELL = [
   'index.html',
   'app.html',

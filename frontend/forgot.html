@@ -51,7 +51,7 @@
    in Chrome without needing incognito). Reload is guarded — it can happen at
    most once per tab, so there is no reload loop. */
 (function(){try{
-  var K='uk_sw_ver',V='2.2.0';
+  var K='uk_sw_ver',V='2.4.0';
   if(!('serviceWorker' in navigator))return;
   navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.update().catch(function(){});});}).catch(function(){});
   if(localStorage.getItem(K)!==V){

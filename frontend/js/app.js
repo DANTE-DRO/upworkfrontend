@@ -109,7 +109,7 @@ function render(view) {
   const fn = ({
     dashboard: viewDashboard, packages: viewPackages, tasks: viewTasks, test: viewTest,
     wallet: viewWallet, invest: viewInvest, market: viewMarket, orders: viewOrders,
-    profile: viewProfile, verify: viewVerify, settings: viewSettings
+    invite: viewInvite, profile: viewProfile, verify: viewVerify, settings: viewSettings
   })[view] || viewDashboard;
   fn();
 }
@@ -1016,6 +1016,51 @@ async function viewOrders() {
 }
 
 /* -- profile -- */
+/* -- invite & earn: referral program (KES 50 per person who joins via your link,
+      paid only while you hold an ACTIVE package; pending rewards auto-release on unlock) -- */
+async function viewInvite() {
+  MAIN().innerHTML = '<h1 style="font-size:28px">Invite & Earn 🎁</h1><p style="color:var(--muted)">Loading…</p>';
+  let r;
+  try { r = await UK.api('/api/referrals'); }
+  catch (err) { MAIN().innerHTML = '<div class="form-msg err" style="display:block">' + UK.esc(err.message) + '</div>'; return; }
+  const link = location.origin + '/register.html?ref=' + encodeURIComponent(r.code);
+  MAIN().innerHTML = `
+    <h1 style="font-size:28px">Invite & Earn 🎁</h1>
+    <p style="color:var(--muted);margin:6px 0 22px">Share your personal invite link. For every person who joins Upwork Kenya using your link, you receive <b>KES ${r.reward}</b> — paid straight to your earnings wallet.</p>
+    <div class="grid grid-3" style="max-width:860px;margin-bottom:16px">
+      <div class="card stat"><div class="num">${r.stats.total}</div><div class="lbl">People invited</div></div>
+      <div class="card stat"><div class="num">${UK.money(r.stats.earned)}</div><div class="lbl">Earned from invites</div></div>
+      <div class="card stat"><div class="num">${UK.money(r.stats.pending)}</div><div class="lbl">Pending rewards</div></div>
+    </div>
+    <div class="card" style="max-width:860px">
+      <h3>Your invite link</h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0">
+        <input id="invLink" readonly value="${UK.esc(link)}" style="flex:1;min-width:220px">
+        <button class="btn btn-primary btn-sm" id="invCopy">📋 Copy link</button>
+      </div>
+      <div style="color:var(--muted);font-size:13.5px">Or share your invite code: <b>${UK.esc(r.code)}</b></div>
+      ${r.activePackage
+        ? '<div class="form-msg ok" style="display:block;margin-top:12px">✅ Your package is active — every new signup pays you KES ' + r.reward + ' instantly.</div>'
+        : '<div class="form-msg err" style="display:block;margin-top:12px">⚠️ Rewards are paid only while you have an ACTIVE package. Unlock any package and every invite you have ever made pays out automatically.</div>'}
+    </div>
+    <div class="card" style="max-width:860px;margin-top:16px">
+      <h3>Your invites</h3>
+      ${r.referrals.length ? r.referrals.map(x => `
+        <div class="dd-item" style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+          <div><b>${UK.esc(x.name)}</b><div style="color:var(--muted);font-size:12px">${UK.timeAgo(x.at)}</div></div>
+          ${x.rewarded ? '<span class="pill pill-green">+' + UK.money(x.amount) + '</span>' : '<span class="pill pill-amber">Pending</span>'}
+        </div>`).join('') : '<div style="color:var(--muted)">No invites yet — share your link to start earning.</div>'}
+    </div>`;
+  document.getElementById('invCopy').onclick = async () => {
+    const v = document.getElementById('invLink').value;
+    try { await navigator.clipboard.writeText(v); UK.toast('Invite link copied!'); }
+    catch {
+      const el = document.getElementById('invLink'); el.select();
+      try { document.execCommand('copy'); UK.toast('Invite link copied!'); } catch { UK.toast('Copy failed — long-press the link to copy.', true); }
+    }
+  };
+}
+
 function viewProfile() {
   const pkgName = ME.tier ? ME.tier.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase()) : 'None (locked)';
   MAIN().innerHTML = `

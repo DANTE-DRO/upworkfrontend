@@ -48,6 +48,7 @@
     <button class="nav-item" data-view="invest"><span class="ico">📈</span> Investor Funds</button>
     <button class="nav-item" data-view="market"><span class="ico">🛒</span> Marketplace</button>
     <button class="nav-item" data-view="orders"><span class="ico">📦</span> Orders</button>
+    <button class="nav-item" data-view="invite"><span class="ico">🎁</span> Invite & Earn</button>
     <button class="nav-item" data-view="profile"><span class="ico">👤</span> My Profile</button>
     <button class="nav-item" data-view="verify"><span class="ico">✔️</span> Get Verified</button>
     <button class="nav-item" data-view="settings"><span class="ico">⚙️</span> Settings</button>
@@ -91,7 +92,7 @@
    in Chrome without needing incognito). Reload is guarded — it can happen at
    most once per tab, so there is no reload loop. */
 (function(){try{
-  var K='uk_sw_ver',V='2.3.0';
+  var K='uk_sw_ver',V='2.4.0';
   if(!('serviceWorker' in navigator))return;
   navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.update().catch(function(){});});}).catch(function(){});
   if(localStorage.getItem(K)!==V){
