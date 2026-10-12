@@ -892,12 +892,13 @@ async function viewInvest() {
 
     <div class="card" style="margin-top:20px">
       <h3 style="margin-bottom:12px">My investments</h3>
-      ${r.investments.length ? '<div style="overflow-x:auto"><table><thead><tr><th>Plan</th><th>Invested</th><th>Return</th><th>Payout</th><th>Matures</th><th>Status</th><th></th></tr></thead><tbody>' +
+      ${r.investments.length ? '<div style="overflow-x:auto"><table><thead><tr><th>Plan</th><th>Invested</th><th>Earned so far</th><th>Return</th><th>Payout</th><th>Matures</th><th>Status</th><th></th></tr></thead><tbody>' +
         r.investments.map(i => {
           const daysLeft = Math.max(0, Math.ceil((i.maturesAt - Date.now()) / 86400000));
           return `<tr>
             <td><b>${UK.esc(i.planName)}</b></td>
             <td>${UK.money(i.amount)}</td>
+            <td style="color:var(--primary);font-weight:700">+${UK.money(i.accruedInterest || 0)}</td>
             <td style="color:var(--primary)">+${UK.money(i.interest)}</td>
             <td><b>${UK.money(i.amount + i.interest)}</b></td>
             <td>${new Date(i.maturesAt).toLocaleDateString('en-KE')}${i.status === 'active' ? `<br><span class="countdown" style="font-size:12px;color:var(--muted)">${i.matured ? 'Ready to withdraw' : daysLeft + ' day(s) left'}</span>` : ''}</td>
