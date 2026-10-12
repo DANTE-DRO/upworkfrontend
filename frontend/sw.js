@@ -1,9 +1,15 @@
 'use strict';
-/* Upwork Kenya — Service Worker
-   Enables: real "Install app" prompt, offline shell, push-style notifications.
-   Network-only for /api/ calls so live data is never served stale. */
+/* Upwork Kenya — Service Worker v3.0.0
+   ------------------------------------------------------------
+   KEY CHANGE vs v2: NETWORK-FIRST for HTML/JS/CSS.
+   The old cache-first strategy is what kept stale builds (with the wrong API
+   base / an old login) stuck inside a browser until the user went incognito.
+   Now every browser ALWAYS fetches the freshest page/scripts when online and
+   only falls back to cache when offline — so no account ever "stacks" on an
+   old build again. /api/ calls remain strictly network-only (live data).
+   PWA install, offline shell, notifications and push are fully preserved. */
 
-const CACHE_NAME = 'upwork-kenya-v2.3.1'; // v2.3.1: config.js now points at the Render backend (Vercel migration) — bump forces the old cached config.js (empty API base) out on every installed device
+const CACHE_NAME = 'upwork-kenya-v3.0.0'; // bump on every deploy — wipes old caches on activate
 const SHELL = [
   'index.html',
   'app.html',
@@ -37,35 +43,56 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+/* Only clean same-origin 200 responses are ever written to cache — a cached
+   error/opaque response is what used to poison the shell. */
+function putIfClean(req, res) {
+  if (res && res.status === 200 && (res.type === 'basic' || res.type === 'default')) {
+    const copy = res.clone();
+    caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => {});
+  }
+  return res;
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  /* API + auth: always go to network, never cache */
+  /* API + auth: always network, never cached */
   if (url.pathname.indexOf('/api/') !== -1) return;
+
   /* Cross-origin (fonts etc.): network with cache fallback */
   if (url.origin !== self.location.origin) {
+    event.respondWith(fetch(req).catch(() => caches.match(req)));
+    return;
+  }
+
+  const dest = req.destination; // 'document' | 'script' | 'style' | 'image' | ''
+  const isCode = dest === 'document' || dest === 'script' || dest === 'style'
+    || /\.(html?|js|css|json)(\?|$)/i.test(url.pathname);
+
+  if (isCode) {
+    /* NETWORK-FIRST — the freshest build always wins when online; cache is the
+       offline fallback only. This is the auto-cache-clear behaviour: a redeploy
+       is picked up by every browser on the very next load. */
     event.respondWith(
-      fetch(req).catch(() => caches.match(req))
+      fetch(req)
+        .then((res) => putIfClean(req, res))
+        .catch(() => caches.match(req).then((hit) => {
+          if (hit) return hit;
+          /* Offline + never-cached page: serve the shell for navigations. */
+          return dest === 'document' ? caches.match('index.html') : Response.error();
+        }))
     );
     return;
   }
 
-  /* Same-origin static: cache-first, then network, then offline shell */
+  /* Images/icons: cache-first (they never change), then network. */
   event.respondWith(
     caches.match(req).then((hit) => {
       if (hit) return hit;
-      return fetch(req).then((res) => {
-        /* Only ever cache clean, same-origin 200 responses. A single cached
-           error/opaque response is what poisoned the shell and made Chrome
-           show "Request failed" on login until the user went incognito. */
-        if (res && res.status === 200 && (res.type === 'basic' || res.type === 'default')) {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => {});
-        }
-        return res;
-      }).catch(() => caches.match('index.html'));
+      return fetch(req).then((res) => putIfClean(req, res))
+        .catch(() => caches.match('index.html'));
     })
   );
 });
@@ -73,8 +100,7 @@ self.addEventListener('fetch', (event) => {
 /* Show notifications sent from the page or push */
 self.addEventListener('message', (event) => {
   const data = event.data || {};
-  /* The page can force an instant upgrade to the newest worker (used to flush
-     a stale cached build that is causing request failures). */
+  /* The page can force an instant upgrade to the newest worker. */
   if (data.type === 'SKIP_WAITING') { self.skipWaiting(); return; }
   if (data.type === 'SHOW_NOTIFICATION') {
     self.registration.showNotification(data.title || 'Upwork Kenya', {

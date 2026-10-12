@@ -17,7 +17,7 @@ const UK = {
   API_BASE: (typeof window !== 'undefined'
     ? (typeof window.UK_API_BASE === 'string'
         ? window.UK_API_BASE.trim().replace(/\/+$/, '')
-        : 'https://api.upwork.co.ke')
+        : 'https://api.cumpusconnect.co.ke')
     : ''),
 
   async api(path, opts = {}) {
@@ -97,4 +97,23 @@ UK.applyTheme();
   const ping = () => { try { fetch(UK.API_BASE + '/api/health').catch(() => {}); } catch {} };
   ping();
   setInterval(ping, 10 * 60 * 1000);
+})();
+
+/* Auto cache-clear on every deploy: when a new service worker takes control,
+   reload the page ONCE so no browser ever stays stuck on an old build or an
+   old login state. Attached only when a controller already exists, so the
+   very first install of the SW never causes a reload loop. */
+(function swAutoRefresh() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloaded) return;
+      reloaded = true;
+      try { sessionStorage.setItem('uk_sw_refreshed', '1'); } catch {}
+      location.reload();
+    });
+    /* Also nudge the SW to update on every page load (cheap no-op if same). */
+    navigator.serviceWorker.getRegistration().then(r => { if (r) r.update().catch(() => {}); }).catch(() => {});
+  } catch {}
 })();

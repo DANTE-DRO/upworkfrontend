@@ -20,7 +20,7 @@
     name: 'Upwork Kenya',
     tagline: 'Freelance Tasks & Gigs',
     developer: 'Upwork Kenya · Nairobi',
-    version: '2.2.0',
+    version: '3.0.0',
     updated: 'September 2026',
     size: '18 MB',
     rating: 4.8,
