@@ -24,7 +24,14 @@ const UK = {
     const headers = { 'Content-Type': 'application/json' };
     if (UK.token) headers['x-auth-token'] = UK.token;
     const url = /^https?:\/\//i.test(path) ? path : UK.API_BASE + path;
-    const res = await fetch(url, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
+    let res;
+    try {
+      res = await fetch(url, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
+    } catch (netErr) {
+      throw new Error('Network error reaching ' + url
+        + ' — usually a stale Service-Worker cache. Hard-reload (Ctrl/Cmd+Shift+R) or ' +
+          'DevTools → Application → Service Workers → Unregister, then reload.');
+    }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || 'Request failed.');
     return data;

@@ -9,7 +9,7 @@
    old build again. /api/ calls remain strictly network-only (live data).
    PWA install, offline shell, notifications and push are fully preserved. */
 
-const CACHE_NAME = 'upwork-kenya-v3.2.0'; // bump on every deploy — wipes old caches on activate
+const CACHE_NAME = 'upwork-kenya-v4.0.0-20261013'; // bump on every deploy — wipes old caches on activate
 const SHELL = [
   'index.html',
   'app.html',
@@ -19,7 +19,6 @@ const SHELL = [
   'reset.html',
   'manifest.json',
   'css/style.css',
-  'js/config.js',
   'js/common.js',
   'js/install.js',
   'icons/icon-192.png',
@@ -38,7 +37,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.map((k) => caches.delete(k)))) /* wipe ALL prior SW caches */
       .then(() => self.clients.claim())
   );
 });
